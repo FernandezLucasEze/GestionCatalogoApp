@@ -1,68 +1,58 @@
-# ----------------------------------------------------
-# 1. NOMBRE DEL WORKFLOW
-# Este es el nombre que verás en la pestaña "Actions" de GitHub.
-# ----------------------------------------------------
-name: .NET CI Pipeline
+name: .NET CI/CD Pipeline
 
-# ----------------------------------------------------
-# 2. DISPARADOR (TRIGGER)
-# Aquí le decimos a GitHub CUÁNDO debe ejecutar este workflow.
-# ----------------------------------------------------
 on:
-  # Se ejecutará cuando hagas un 'push' (subas código)...
   push:
-    branches: [ "develop" ] # ...específicamente a la rama 'develop'.
-  
-  # También se ejecutará cuando se cree o actualice un 'pull request'...
+    branches: [ "develop" ]
   pull_request:
-    branches: [ "develop" ] # ...que apunte a la rama 'develop'.
+    branches: [ "develop" ]
 
-# ----------------------------------------------------
-# 3. TRABAJOS (JOBS)
-# Un workflow se compone de uno o más "trabajos" que se pueden ejecutar
-# en paralelo o en secuencia. Aquí solo tendremos uno.
-# ----------------------------------------------------
 jobs:
-  # Nombramos a nuestro primer trabajo "build".
   build:
-    
-    # Le decimos en qué tipo de máquina virtual queremos que se ejecute.
-    # 'ubuntu-latest' es la opción estándar: rápida, gratuita y compatible.
     runs-on: ubuntu-latest
-
-    # ------------------------------------------------
-    # 4. PASOS (STEPS)
-    # Esta es la secuencia de comandos que se ejecutarán dentro del trabajo.
-    # ------------------------------------------------
     steps:
-    # --- PASO 1: Descargar el código ---
-    # 'uses' indica que estamos usando una acción pre-construida por la comunidad.
-    # 'actions/checkout@v3' es la acción oficial para descargar tu repositorio.
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    # --- PASO 2: Instalar .NET ---
-    # Usamos otra acción oficial para instalar el SDK de .NET en la máquina virtual.
+    - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        # Es crucial que esta versión coincida con la de tu proyecto.
-        dotnet-version: 7.0.x
-
-    # --- PASO 3: Restaurar Dependencias ---
-    # 'run' indica que vamos a ejecutar un comando de terminal.
-    # 'dotnet restore' descarga todos los paquetes NuGet que tu solución necesita.
+        # --- ¡CAMBIO CLAVE AQUÍ! ---
+        # Le decimos al pipeline que use el SDK de .NET 8.
+        dotnet-version: 8.0.x 
+    
     - name: Restore dependencies
       run: dotnet restore
-
-    # --- PASO 4: Compilar el Proyecto ---
-    # 'dotnet build' compila todo el código.
-    # '--no-restore' es una optimización, ya que acabamos de hacer el restore.
+    
     - name: Build
       run: dotnet build --no-restore
-
-    # --- PASO 5: Ejecutar las Pruebas ---
-    # 'dotnet test' busca y ejecuta tu proyecto de pruebas (xUnit en este caso).
-    # '--no-build' es otra optimización.
+    
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    
+    - name: Publish
+      run: dotnet publish src/Presentation/GestionCatalogo.Api/GestionCatalogo.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/webapp
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: webapp
+        path: ${{env.DOTNET_ROOT}}/webapp
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: webapp
+
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'gestion-catalogo-api-fernandezlucas'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: .
