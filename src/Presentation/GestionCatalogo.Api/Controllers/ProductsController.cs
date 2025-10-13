@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using GestionCatalogo.Application.Contracts.Persistence;
 using GestionCatalogo.Application.Features.Products.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestionCatalogo.Api.Controllers;
 
 [ApiController] // <-- Atributo esencial
 [Route("api/[controller]")] // <-- Atributo esencial
+[Authorize]
 public class ProductsController : ControllerBase
 {
     private readonly IProductRepository _productRepository;
