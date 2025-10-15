@@ -416,3 +416,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# -----------------------------------------------
+# REGLAS PERSONALIZADAS PARA ESTE PROYECTO
+# -----------------------------------------------
+
+# Ignorar la carpeta de respaldo del proyecto web
+src/Presentation/GestionCatalogo.Web_backup/
