@@ -1,0 +1,95 @@
+﻿@page "/products/edit/{ProductId:int}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Editar Producto</h3>
+
+@if (productModel == null)
+{
+    <p><em>Cargando producto...</em></p>
+}
+else
+{
+    <EditForm Model="@productModel" OnValidSubmit="HandleUpdateProduct">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group mb-2">
+            <label>Nombre:</label>
+            <InputText class="form-control" @bind-Value="productModel.Name" />
+        </div>
+        <div class="form-group mb-2">
+            <label>Descripción:</label>
+            <InputTextArea class="form-control" @bind-Value="productModel.Description" />
+        </div>
+        <div class="form-group mb-2">
+            <label>Precio:</label>
+            <InputNumber class="form-control" @bind-Value="productModel.Price" />
+        </div>
+        <div class="form-group mb-2">
+            <label>Stock:</label>
+            <InputNumber class="form-control" @bind-Value="productModel.Stock" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Actualizar Producto</button>
+        <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int ProductId { get; set; }
+
+    private CreateProductDto? productModel; // Usamos el mismo DTO de creación
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Primero, obtenemos los datos actuales del producto a editar
+            var product = await Http.GetFromJsonAsync<ProductDto>($"https://localhost:5001/api/products/{ProductId}");
+            if (product != null)
+            {
+                // Llenamos el modelo del formulario con los datos existentes
+                productModel = new CreateProductDto
+                {
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    Stock = product.Stock
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar el producto: {ex.Message}";
+        }
+    }
+
+    private async Task HandleUpdateProduct()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"https://localhost:5001/api/products/{ProductId}", productModel);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/products");
+            }
+            else
+            {
+                errorMessage = "Error al actualizar el producto.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/products");
+    }
+}

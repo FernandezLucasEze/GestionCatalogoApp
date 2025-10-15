@@ -1,8 +1,8 @@
 ﻿@page "/products"
-@using System.Text.Json.Serialization
 @attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime // Inyectamos IJSRuntime para poder usar 'confirm'
 
 <h3>Catálogo de Productos</h3>
 
@@ -16,7 +16,7 @@ else if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger">@errorMessage</div>
 }
-else if (products != null && !products.Any())
+else if (!products.Any())
 {
     <p>No hay productos en el catálogo. ¡Crea el primero!</p>
 }
@@ -33,7 +33,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var product in products!)
+            @foreach (var product in products)
             {
                 <tr>
                     <td>@product.Name</td>
@@ -41,8 +41,8 @@ else
                     <td>@product.Price.ToString("C")</td>
                     <td>@product.Stock</td>
                     <td>
-                        <button class="btn btn-sm btn-primary">Editar</button>
-                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                        <button class="btn btn-sm btn-primary" @onclick="() => GoToEditProduct(product.Id)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteProduct(product.Id)">Eliminar</button>
                     </td>
                 </tr>
             }
@@ -51,18 +51,58 @@ else
 }
 
 @code {
-    private ProductDto[]? products;
+    private List<ProductDto>? products; // Cambiamos a List<T> para poder eliminar elementos
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
         try
         {
-            products = await Http.GetFromJsonAsync<ProductDto[]>("https://localhost:5001/api/products");
+            var productList = await Http.GetFromJsonAsync<List<ProductDto>>("https://localhost:5001/api/products");
+            if (productList != null)
+            {
+                products = productList;
+            }
         }
         catch (Exception ex)
         {
             errorMessage = $"Error al cargar productos: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteProduct(int productId)
+    {
+        // Mostramos una confirmación de JavaScript
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres eliminar este producto?");
+        if (confirmed)
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"https://localhost:5001/api/products/{productId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    // Si la API lo borró con éxito, lo quitamos de la lista local
+                    var productToRemove = products?.FirstOrDefault(p => p.Id == productId);
+                    if (productToRemove != null)
+                    {
+                        products.Remove(productToRemove);
+                        StateHasChanged(); // Notifica a Blazor que debe redibujar la tabla
+                    }
+                }
+                else
+                {
+                    errorMessage = "Error al eliminar el producto.";
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error: {ex.Message}";
+            }
         }
     }
 
@@ -71,17 +111,11 @@ else
         NavigationManager.NavigateTo("/products/create");
     }
 
-    public class ProductDto
+    private void GoToEditProduct(int productId)
     {
-        [JsonPropertyName("id")]
-        public int Id { get; set; }
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
-        [JsonPropertyName("description")]
-        public string Description { get; set; } = string.Empty;
-        [JsonPropertyName("price")]
-        public decimal Price { get; set; }
-        [JsonPropertyName("stock")]
-        public int Stock { get; set; }
+        // Lógica para editar (la haremos en el siguiente paso)
+        NavigationManager.NavigateTo($"/products/edit/{productId}");
     }
+
+    // ... (la clase ProductDto que ya tenías)
 }
