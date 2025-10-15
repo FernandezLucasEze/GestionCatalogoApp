@@ -1,0 +1,87 @@
+﻿@page "/products"
+@using System.Text.Json.Serialization
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Catálogo de Productos</h3>
+
+<button class="btn btn-success mb-3" @onclick="GoToCreateProduct">Crear Nuevo Producto</button>
+
+@if (products == null && string.IsNullOrEmpty(errorMessage))
+{
+    <p><em>Cargando productos...</em></p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (products != null && !products.Any())
+{
+    <p>No hay productos en el catálogo. ¡Crea el primero!</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products!)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Description</td>
+                    <td>@product.Price.ToString("C")</td>
+                    <td>@product.Stock</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary">Editar</button>
+                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private ProductDto[]? products;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            products = await Http.GetFromJsonAsync<ProductDto[]>("https://localhost:5001/api/products");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar productos: {ex.Message}";
+        }
+    }
+
+    private void GoToCreateProduct()
+    {
+        NavigationManager.NavigateTo("/products/create");
+    }
+
+    public class ProductDto
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("description")]
+        public string Description { get; set; } = string.Empty;
+        [JsonPropertyName("price")]
+        public decimal Price { get; set; }
+        [JsonPropertyName("stock")]
+        public int Stock { get; set; }
+    }
+}

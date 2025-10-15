@@ -1,0 +1,15 @@
+﻿@page "/logout"
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await localStorage.RemoveItemAsync("authToken");
+
+        ((CustomAuthenticationStateProvider)AuthProvider).MarkUserAsLoggedOut();
+
+        NavigationManager.NavigateTo("/");
+    }
+}

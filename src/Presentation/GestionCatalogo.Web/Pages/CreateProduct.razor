@@ -1,0 +1,74 @@
+﻿@page "/products/create"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3>Crear Nuevo Producto</h3>
+
+<EditForm Model="@productModel" OnValidSubmit="HandleCreateProduct">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-2">
+        <label>Nombre:</label>
+        <InputText class="form-control" @bind-Value="productModel.Name" />
+    </div>
+    <div class="form-group mb-2">
+        <label>Descripción:</label>
+        <InputTextArea class="form-control" @bind-Value="productModel.Description" />
+    </div>
+    <div class="form-group mb-2">
+        <label>Precio:</label>
+        <InputNumber class="form-control" @bind-Value="productModel.Price" />
+    </div>
+    <div class="form-group mb-2">
+        <label>Stock:</label>
+        <InputNumber class="form-control" @bind-Value="productModel.Stock" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar Producto</button>
+    <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancelar</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+@code {
+    private CreateProductDto productModel = new();
+    private string? errorMessage;
+
+    private async Task HandleCreateProduct()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:5001/api/products", productModel);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/products", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Error al crear el producto. Código de estado: " + response.StatusCode;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/products");
+    }
+
+    public class CreateProductDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int Stock { get; set; }
+    }
+}

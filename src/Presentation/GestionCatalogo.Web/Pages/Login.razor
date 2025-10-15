@@ -1,0 +1,52 @@
+﻿@page "/login"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<h3>Login</h3>
+
+<EditForm Model="@loginDto" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-2">
+        <label>Usuario:</label>
+        <InputText class="form-control" @bind-Value="loginDto.Username" />
+    </div>
+    <div class="form-group mb-2">
+        <label>Contraseña:</label>
+        <InputText type="password" class="form-control" @bind-Value="loginDto.Password" />
+    </div>
+    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        @errorMessage
+    </div>
+}
+
+@code {
+    private LoginDto loginDto = new();
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+        // Fíjate cómo usamos "AuthService" (la variable inyectada), no "AuthService" como clase.
+        var result = await AuthService.LoginAsync(loginDto);
+
+        if (result != null && !string.IsNullOrEmpty(result.Token))
+        {
+            await localStorage.SetItemAsync("authToken", result.Token);
+            ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(result.Token);
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Credenciales inválidas. Por favor, inténtalo de nuevo.";
+        }
+    }
+}
