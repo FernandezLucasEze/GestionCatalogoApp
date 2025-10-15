@@ -1,0 +1,20 @@
+﻿@page "/logout"
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Borra el token del almacenamiento local
+        await localStorage.RemoveItemAsync("authToken");
+
+        // --- ¡AQUÍ ESTÁ EL CAMBIO CLAVE! ---
+        // Hacemos un "cast" del AuthProvider a nuestro tipo específico
+        // para poder llamar a nuestro método personalizado.
+        ((CustomAuthenticationStateProvider)AuthProvider).MarkUserAsLoggedOut();
+
+        // Redirige a la página principal
+        NavigationManager.NavigateTo("/");
+    }
+}
