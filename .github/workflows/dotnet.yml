@@ -14,9 +14,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        # --- ¡CAMBIO CLAVE AQUÍ! ---
-        # Le decimos al pipeline que use el SDK de .NET 8.
-        dotnet-version: 8.0.x 
+        dotnet-version: 8.0.x
     
     - name: Restore dependencies
       run: dotnet restore
@@ -26,15 +24,15 @@ jobs:
     
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    
-    - name: Publish
-      run: dotnet publish src/Presentation/GestionCatalogo.Api/GestionCatalogo.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/webapp
+      
+    - name: Publish API
+      run: dotnet publish src/Presentation/GestionCatalogo.Api/GestionCatalogo.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/api-app
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload API artifact
+      uses: actions/upload-artifact@v4 
       with:
-        name: webapp
-        path: ${{env.DOTNET_ROOT}}/webapp
+        name: api-app
+        path: ${{env.DOTNET_ROOT}}/api-app
 
   deploy:
     runs-on: ubuntu-latest
@@ -44,15 +42,19 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     
     steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v3
+    - name: Download API artifact
+      uses: actions/download-artifact@v4 
       with:
-        name: webapp
+        name: api-app
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Deploy to Azure Web App
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'gestion-catalogo-api-fernandezlucas'
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: .
