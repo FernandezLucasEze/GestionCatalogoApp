@@ -36,8 +36,7 @@
 }
 
 @code {
-    // Esta instancia de CreateProductDto ahora usa la clase global
-    // definida en la carpeta /Dtos, gracias a _Imports.razor.
+
     private CreateProductDto productModel = new();
     private string? errorMessage;
 
@@ -66,5 +65,4 @@
         NavigationManager.NavigateTo("/products");
     }
 
-    // ¡Hemos eliminado la definición de la clase CreateProductDto de aquí!
 }

@@ -6,6 +6,5 @@ namespace GestionCatalogo.Application.Features.Products.Services;
 
 public class ProductService : IProductService
 {
-    // Constructor vacío por ahora para simplificar
     public ProductService() { }
 }

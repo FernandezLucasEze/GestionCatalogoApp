@@ -35,7 +35,6 @@
     private async Task HandleLogin()
     {
         errorMessage = null;
-        // Fíjate cómo usamos "AuthService" (la variable inyectada), no "AuthService" como clase.
         var result = await AuthService.LoginAsync(loginDto);
 
         if (result != null && !string.IsNullOrEmpty(result.Token))
