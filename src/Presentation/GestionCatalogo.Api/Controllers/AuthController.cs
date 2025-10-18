@@ -27,7 +27,6 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto registerDto)
     {
-        // CORRECCIÓN AQUÍ: Se añade "BCrypt.Net."
         string passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
         var user = new User { Username = registerDto.Username, PasswordHash = passwordHash };
@@ -43,7 +42,6 @@ public class AuthController : ControllerBase
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == loginDto.Username);
 
-        // CORRECCIÓN AQUÍ: Se añade "BCrypt.Net."
         if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
         {
             return Unauthorized(new { Message = "Credenciales inválidas" });

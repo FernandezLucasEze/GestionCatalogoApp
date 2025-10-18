@@ -3,7 +3,7 @@ namespace GestionCatalogo.Web.Services;
 public class AuthService : IAuthService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiBaseUrl = "https://localhost:5001/api/auth"; // Ajusta si es necesario
+    private readonly string _apiBaseUrl = "https://localhost:5001/api/auth"; 
     public AuthService(HttpClient httpClient) { _httpClient = httpClient; }
     public async Task<bool> RegisterAsync(RegisterDto registerDto)
     {

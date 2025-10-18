@@ -41,18 +41,16 @@ else
     [Parameter]
     public int ProductId { get; set; }
 
-    private CreateProductDto? productModel; // Usamos el mismo DTO de creación
+    private CreateProductDto? productModel; 
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Primero, obtenemos los datos actuales del producto a editar
             var product = await Http.GetFromJsonAsync<ProductDto>($"https://localhost:5001/api/products/{ProductId}");
             if (product != null)
             {
-                // Llenamos el modelo del formulario con los datos existentes
                 productModel = new CreateProductDto
                 {
                     Name = product.Name,

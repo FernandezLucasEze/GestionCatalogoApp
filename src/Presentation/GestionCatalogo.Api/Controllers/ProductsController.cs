@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestionCatalogo.Api.Controllers;
 
-[ApiController] // <-- Atributo esencial
-[Route("api/[controller]")] // <-- Atributo esencial
+[ApiController] 
+[Route("api/[controller]")] 
 [Authorize]
 public class ProductsController : ControllerBase
 {

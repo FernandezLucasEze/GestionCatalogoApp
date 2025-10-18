@@ -20,15 +20,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorApp", policy =>
     {
-        // Usa las URLs (HTTP y HTTPS) y puertos correctos de tu app Blazor
         policy.WithOrigins("https://localhost:7186", "http://localhost:5288")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
-// -----------------------------------------
 
-// --- CONFIGURACIÓN DE SERVICIOS ---
 builder.Services.AddControllers();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 builder.Services.AddFluentValidationAutoValidation();
@@ -56,7 +53,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// --- CONFIGURACIÓN DEL PIPELINE HTTP ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

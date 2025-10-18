@@ -51,7 +51,7 @@ else
 }
 
 @code {
-    private List<ProductDto>? products; // Cambiamos a List<T> para poder eliminar elementos
+    private List<ProductDto>? products; 
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -77,7 +77,6 @@ else
 
     private async Task DeleteProduct(int productId)
     {
-        // Mostramos una confirmación de JavaScript
         var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de que quieres eliminar este producto?");
         if (confirmed)
         {
@@ -86,12 +85,11 @@ else
                 var response = await Http.DeleteAsync($"https://localhost:5001/api/products/{productId}");
                 if (response.IsSuccessStatusCode)
                 {
-                    // Si la API lo borró con éxito, lo quitamos de la lista local
                     var productToRemove = products?.FirstOrDefault(p => p.Id == productId);
                     if (productToRemove != null)
                     {
                         products.Remove(productToRemove);
-                        StateHasChanged(); // Notifica a Blazor que debe redibujar la tabla
+                        StateHasChanged(); 
                     }
                 }
                 else
@@ -113,9 +111,7 @@ else
 
     private void GoToEditProduct(int productId)
     {
-        // Lógica para editar (la haremos en el siguiente paso)
         NavigationManager.NavigateTo($"/products/edit/{productId}");
     }
 
-    // ... (la clase ProductDto que ya tenías)
 }

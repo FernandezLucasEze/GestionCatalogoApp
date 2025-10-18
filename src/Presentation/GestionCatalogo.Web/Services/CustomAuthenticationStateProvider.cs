@@ -56,7 +56,6 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
         if (keyValuePairs != null)
         {
-            // Busca el 'subject' claim, que es el nombre de usuario
             if (keyValuePairs.TryGetValue("sub", out object? username))
             {
                 claims.Add(new Claim(ClaimTypes.Name, username.ToString()!));
